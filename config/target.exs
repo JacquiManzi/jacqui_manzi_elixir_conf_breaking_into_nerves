@@ -30,12 +30,13 @@ node_name = if Mix.env() != :prod, do: "hello_nerves"
 
 config :hello_nerves, port: 4001
 config :picam, camera: Picam.Camera
+
 config :nerves_init_gadget,
-       ifname: "eth0",
-       address_method: :dhcp,
-       mdns_domain: "nerves.local",
-       node_name: "pi",
-       node_host: :mdns_domain
+  ifname: "eth0",
+  address_method: :dhcp,
+  mdns_domain: "nerves.local",
+  node_name: "pi",
+  node_host: :mdns_domain
 
 # Import target specific config. This must remain at the bottom
 # of this file so it overrides the configuration defined above.
