@@ -3,9 +3,10 @@ defmodule HelloNerves.Streamer do
   Plug for streaming an image
   """
   import Plug.Conn
+  require Logger
 
   @behaviour Plug
-  @boundary "w58EW1cEpjzydSCq"
+  @boundary "night_vision"
 
   def init(opts), do: opts
 
@@ -16,7 +17,7 @@ defmodule HelloNerves.Streamer do
     |> put_resp_header("Pragma", "no-cache")
     |> put_resp_header("Content-Type", "multipart/x-mixed-replace; boundary=#{@boundary}")
     |> send_chunked(200)
-    |> send_pictures
+    |> send_pictures()
   end
 
   defp send_pictures(conn) do
@@ -26,7 +27,11 @@ defmodule HelloNerves.Streamer do
 
   defp send_picture(conn) do
     jpg = Picam.next_frame()
+
+    pid = Process.whereis(MotionDetectionWorker)
+    GenServer.cast(pid, {:detect_motion, jpg})
     size = byte_size(jpg)
+
     header = "------#{@boundary}\r\nContent-Type: image/jpeg\r\nContent-length: #{size}\r\n\r\n"
     footer = "\r\n"
 

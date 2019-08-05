@@ -47,6 +47,8 @@ defmodule HelloNerves.MixProject do
       {:cowboy, "~> 2.5.0"},
       {:plug, "~> 1.8.3"},
       {:plug_cowboy, "~> 2.1.0"},
+      {:porcelain, "~> 2.0"},
+      {:ex_image_info, "~> 0.2.4"},
 
       # Dependencies for all targets except :host
       {:nerves_runtime, "~> 0.6", targets: @all_targets},
