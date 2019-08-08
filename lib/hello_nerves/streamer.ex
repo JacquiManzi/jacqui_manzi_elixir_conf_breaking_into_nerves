@@ -6,7 +6,7 @@ defmodule HelloNerves.Streamer do
   require Logger
 
   @behaviour Plug
-  @boundary "night_vision"
+  @boundary "w58EW1cEpjzydSCq"
 
   def init(opts), do: opts
 
@@ -27,9 +27,10 @@ defmodule HelloNerves.Streamer do
 
   defp send_picture(conn) do
     jpg = Picam.next_frame()
+    Picam.set_size(900, 0)
 
-    pid = Process.whereis(MotionDetectionWorker)
-    GenServer.cast(pid, {:detect_motion, jpg})
+    #    pid = Process.whereis(MotionDetectionWorker)
+    #    GenServer.cast(pid, {:detect_motion, jpg})
     size = byte_size(jpg)
 
     header = "------#{@boundary}\r\nContent-Type: image/jpeg\r\nContent-length: #{size}\r\n\r\n"

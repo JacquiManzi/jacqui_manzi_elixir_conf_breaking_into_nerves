@@ -1,4 +1,4 @@
-defmodule NightVision.Motion.Worker do
+defmodule HelloNerves.Motion.Worker do
   use GenServer
   require Logger
 
@@ -20,7 +20,7 @@ defmodule NightVision.Motion.Worker do
         {:reply, state}
 
       false ->
-        sections = NightVision.Motion.MotionDetection.detect_motion(image)
+        sections = HelloNerves.Motion.MotionDetection.detect_motion(image)
         Logger.info(sections)
         {:reply, [{:working, false}, sections]}
     end

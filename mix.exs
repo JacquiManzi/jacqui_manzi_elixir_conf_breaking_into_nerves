@@ -3,7 +3,7 @@ defmodule HelloNerves.MixProject do
 
   @app :hello_nerves
   @version "0.1.0"
-  @all_targets [:rpi3]
+  @all_targets [:rpi, :rpi0, :rpi2, :rpi3, :rpi3a, :rpi4, :bbb, :x86_64]
 
   def project do
     [
@@ -43,19 +43,26 @@ defmodule HelloNerves.MixProject do
       {:shoehorn, "~> 0.6"},
       {:ring_logger, "~> 0.6"},
       {:toolshed, "~> 0.2"},
-      {:picam, "~> 0.4.0"},
-      {:cowboy, "~> 2.5.0"},
-      {:plug, "~> 1.8.3"},
-      {:plug_cowboy, "~> 2.1.0"},
+      {:cowboy, "~> 1.0.0"},
+      {:plug, "~> 1.0"},
+      {:plug_cowboy, "~> 1.0"},
       {:porcelain, "~> 2.0"},
       {:ex_image_info, "~> 0.2.4"},
+      {:picam, git: "https://github.com/JacquiManzi/picam.git", branch: "master"},
 
       # Dependencies for all targets except :host
       {:nerves_runtime, "~> 0.6", targets: @all_targets},
       {:nerves_init_gadget, "~> 0.4", targets: @all_targets},
 
       # Dependencies for specific targets
-      {:nerves_system_rpi3, "~> 1.8", runtime: false, targets: :rpi3}
+      {:nerves_system_rpi, "~> 1.8", runtime: false, targets: :rpi},
+      {:nerves_system_rpi0, "~> 1.8", runtime: false, targets: :rpi0},
+      {:nerves_system_rpi2, "~> 1.8", runtime: false, targets: :rpi2},
+      {:nerves_system_rpi3, "~> 1.8", runtime: false, targets: :rpi3},
+      {:nerves_system_rpi3a, "~> 1.8", runtime: false, targets: :rpi3a},
+      {:nerves_system_rpi4, "~> 1.8", runtime: false, targets: :rpi4},
+      {:nerves_system_bbb, "~> 2.3", runtime: false, targets: :bbb},
+      {:nerves_system_x86_64, "~> 1.8", runtime: false, targets: :x86_64},
     ]
   end
 
