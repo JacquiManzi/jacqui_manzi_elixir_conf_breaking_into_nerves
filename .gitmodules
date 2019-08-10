@@ -1,0 +1,3 @@
+[submodule "libjpeg"]
+	path = priv/libjpeg
+	url = git://github.com/LuaDist/libjpeg.git

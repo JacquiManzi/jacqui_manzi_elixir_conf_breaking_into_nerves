@@ -12,7 +12,7 @@ defmodule HelloNerves.Application do
       [
         worker(HelloNerves.Motion.Worker, []),
         worker(camera, []),
-        Plug.Adapters.Cowboy.child_spec(:http, HelloNerves.Router, [], [port: port])
+        Plug.Adapters.Cowboy.child_spec(:http, HelloNerves.Router, [], port: port)
       ] ++ children(target())
 
     Supervisor.start_link(children, opts)
