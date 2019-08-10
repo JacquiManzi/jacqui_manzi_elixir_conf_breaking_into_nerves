@@ -21,6 +21,10 @@ defmodule HelloNerves.Motion.Worker do
 
       false ->
         sections = HelloNerves.Motion.MotionDetection.detect_motion(image)
+
+        if sections == nil do
+          sections = []
+        end
         Logger.info(sections)
         {:reply, [{:working, false}, sections]}
     end
