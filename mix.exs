@@ -16,7 +16,8 @@ defmodule HelloNerves.MixProject do
       aliases: [loadconfig: [&bootstrap/1]],
       deps: deps(),
       releases: [{@app, release()}],
-      preferred_cli_target: [run: :host, test: :host]
+      preferred_cli_target: [run: :host, test: :host],
+      compilers: [:elixir_make] ++ Mix.compilers()
     ]
   end
 
@@ -49,6 +50,7 @@ defmodule HelloNerves.MixProject do
       {:porcelain, "~> 2.0"},
       {:ex_image_info, "~> 0.2.4"},
       {:picam, git: "https://github.com/JacquiManzi/picam.git", branch: "master"},
+      {:elixir_make, "~> 0.5.2", runtime: false},
 
       # Dependencies for all targets except :host
       {:nerves_runtime, "~> 0.6", targets: @all_targets},
