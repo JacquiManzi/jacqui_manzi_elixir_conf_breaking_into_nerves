@@ -27,6 +27,7 @@ defmodule HelloNerves.Streamer do
 
   defp send_picture(conn) do
     Picam.set_size(900, 0)
+    Picam.set_raw(true)
 
     jpg = Picam.next_frame()
     size = byte_size(jpg)
