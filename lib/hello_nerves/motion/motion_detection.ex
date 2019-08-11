@@ -4,7 +4,7 @@ defmodule HelloNerves.Motion.MotionDetection do
   require Logger
 
   def detect_motion(image) do
-    Logger.debug(inspect(image))
+#    Logger.debug(inspect(image))
 #    %Result{out: decompressed_image, status: status} =
 #      Porcelain.exec("djpeg", ["-bmp", "#{image}"], in: "priv/djpeg")
 #
