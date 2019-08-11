@@ -2,38 +2,22 @@ defmodule HelloNerves.Motion.Worker do
   use GenServer
   require Logger
 
+  @motion_sensitivity 0.005
+
   def start_link() do
-    GenServer.start_link(__MODULE__, [{:working, false}, 0], name: MotionDetectionWorker)
+    GenServer.start_link(__MODULE__, [{:moving, false}, 0], name: MotionDetectionWorker)
   end
 
   @impl true
-  def init([{:working, _working}, 0] = args) do
-    {:ok, args}
-  end
+  def init([{:moving, _moving}, 0] = args), do: {:ok, args}
 
   @impl true
-  def handle_cast({:detect_motion, image}, [{:working, working}, previous_count] = state) do
+  def handle_cast({:detect_motion, image}, [{:moving, moving}, previous_count] = _state) do
+    jpeq_binary_list = HelloNerves.Motion.MotionDetection.detect_motion(image)
+    count = Enum.sum(jpeq_binary_list)
+    percentage = previous_count * @motion_sensitivity
+    is_moving = count < previous_count - percentage or count > previous_count + percentage
 
-    case working do
-      true ->
-        {:reply, state}
-
-      false ->
-        sections = HelloNerves.Motion.MotionDetection.detect_motion(image)
-
-        count = Enum.sum(sections)
-
-        if count < previous_count - (previous_count * 0.20) do
-          Logger.debug(inspect(count))
-          Logger.info("Moving")
-        end
-
-        if count > previous_count + (previous_count * 0.20) do
-          Logger.debug(inspect(count))
-          Logger.info("Moving")
-        end
-
-        {:noreply, [{:working, false}, count]}
-    end
+    {:noreply, [{:moving, is_moving}, count]}
   end
 end

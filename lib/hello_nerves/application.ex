@@ -1,11 +1,13 @@
 defmodule HelloNerves.Application do
   @moduledoc false
   use Application
+
   def start(_type, _args) do
     import Supervisor.Spec, warn: false
     opts = [strategy: :one_for_one, name: HelloNerves.Supervisor]
     port = Application.get_env(:hello_nerves, :port)
     camera = Application.get_env(:picam, :camera, Picam.Camera)
+
     children =
       [
         worker(HelloNerves.Motion.Worker, []),

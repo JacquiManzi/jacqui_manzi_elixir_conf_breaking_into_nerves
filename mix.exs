@@ -47,9 +47,8 @@ defmodule HelloNerves.MixProject do
       {:cowboy, "~> 1.0.0"},
       {:plug, "~> 1.0"},
       {:plug_cowboy, "~> 1.0"},
-      {:porcelain, "~> 2.0"},
       {:ex_image_info, "~> 0.2.4"},
-      {:picam, git: "https://github.com/JacquiManzi/picam.git", branch: "master"},
+      {:picam, "~> 0.4.0"},
       {:elixir_make, "~> 0.5.2", runtime: false},
 
       # Dependencies for all targets except :host
