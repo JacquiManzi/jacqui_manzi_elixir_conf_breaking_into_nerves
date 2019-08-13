@@ -6,46 +6,42 @@ defmodule HelloNerves.Streamer do
   require Logger
 
   @behaviour Plug
-  @boundary "w58EW1cEpjzydSCq"
+  @boundary "yUhJacquiManziElixirConfuIuiHjK"
 
-  def init(opts), do: opts
+  def init(opts) do
+    {:ok, stream} = GenStage.start_link(HelloNerves.Stream, [], name: HelloNerves.Stream)
+    {:ok, recorder} = recorder = GenStage.start_link(HelloNerves.Recorder, [], name: HelloNerves.Recorder)
+    GenStage.sync_subscribe(recorder, to: stream)
+    opts
+  end
 
   def call(conn, _opts) do
-    pid = Process.whereis(MotionDetectionWorker)
+    Picam.set_size(1080, 0)
+
     conn
     |> put_resp_header("Age", "0")
     |> put_resp_header("Cache-Control", "no-cache, private")
     |> put_resp_header("Pragma", "no-cache")
     |> put_resp_header("Content-Type", "multipart/x-mixed-replace; boundary=#{@boundary}")
     |> send_chunked(200)
-    |> send_pictures(pid)
+    |> send_frames()
   end
 
-  defp send_pictures(conn, pid) do
-    jpg = get_picture(conn, pid)
-    [{:moving, is_moving}, count] = :sys.get_state(pid)
-    if is_moving do
-      send_picture(conn, jpg)
-    end
-    send_pictures(conn, pid)
+  defp send_frames(conn) do
+    frame = Picam.next_frame()
+    HelloNerves.Stream.call({:notify, frame})
+    send_frame(conn, frame)
+    send_frames(conn)
   end
 
-  defp get_picture(conn, pid) do
-    Picam.set_size(900, 0)
-    jpg = Picam.next_frame()
-    size = byte_size(jpg)
-
-    GenServer.cast(pid, {:detect_motion, jpg})
-    jpg
-  end
-
-  defp send_picture(conn, jpg) do
-    size = byte_size(jpg)
+  # Sending the jpeg chunks to the browser
+  defp send_frame(conn, frame) do
+    size = byte_size(frame)
     header = "------#{@boundary}\r\nContent-Type: image/jpeg\r\nContent-length: #{size}\r\n\r\n"
     footer = "\r\n"
 
     with {:ok, conn} <- chunk(conn, header),
-         {:ok, conn} <- chunk(conn, jpg),
+         {:ok, conn} <- chunk(conn, frame),
          {:ok, conn} <- chunk(conn, footer),
          do: conn
   end
