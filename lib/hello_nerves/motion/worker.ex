@@ -9,7 +9,15 @@ defmodule HelloNerves.Motion.Worker do
   end
 
   @impl true
-  def init([{:moving, _moving}, 0] = args), do: {:ok, args}
+  def init([{:moving, _moving}, 0] = args) do
+    {:ok, stream} = GenStage.start_link(HelloNerves.Stream, [{:moving, false}, 0], name: HelloNerves.Stream)
+
+    {:ok, recorder} =
+      recorder = GenStage.start_link(HelloNerves.Recorder, [], name: HelloNerves.Recorder)
+
+    GenStage.sync_subscribe(recorder, to: stream)
+    {:ok, args}
+  end
 
   @impl true
   def handle_cast({:detect_motion, image}, [{:moving, moving}, previous_count] = _state) do

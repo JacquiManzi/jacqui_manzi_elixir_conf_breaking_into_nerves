@@ -9,9 +9,6 @@ defmodule HelloNerves.Streamer do
   @boundary "yUhJacquiManziElixirConfuIuiHjK"
 
   def init(opts) do
-    {:ok, stream} = GenStage.start_link(HelloNerves.Stream, [], name: HelloNerves.Stream)
-    {:ok, recorder} = recorder = GenStage.start_link(HelloNerves.Recorder, [], name: HelloNerves.Recorder)
-    GenStage.sync_subscribe(recorder, to: stream)
     opts
   end
 
@@ -29,7 +26,6 @@ defmodule HelloNerves.Streamer do
 
   defp send_frames(conn) do
     frame = Picam.next_frame()
-    HelloNerves.Stream.call({:notify, frame})
     send_frame(conn, frame)
     send_frames(conn)
   end

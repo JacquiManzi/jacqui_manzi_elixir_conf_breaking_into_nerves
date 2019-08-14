@@ -1,5 +1,4 @@
 defmodule HelloNerves.Motion.MotionDetection do
-  import ExImageInfo
   require Logger
 
   def detect_motion(image) do
