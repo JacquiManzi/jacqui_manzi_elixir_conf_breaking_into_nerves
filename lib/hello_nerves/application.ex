@@ -10,8 +10,8 @@ defmodule HelloNerves.Application do
 
     children =
       [
-        worker(HelloNerves.Motion.Worker, []),
         worker(camera, []),
+        worker(HelloNerves.Motion.Worker, []),
         Plug.Adapters.Cowboy.child_spec(:http, HelloNerves.Router, [], port: port)
       ] ++ children(target())
 

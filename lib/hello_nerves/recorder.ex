@@ -3,6 +3,11 @@
 defmodule HelloNerves.Recorder do
   use GenStage
 
+  import Plug.Conn
+  require Logger
+
+  @behaviour Plug
+
   def start_link([] = args) do
     GenStage.start_link(HelloNerves.Recorder, args, name: HelloNerves.Recorder)
   end
@@ -13,9 +18,18 @@ defmodule HelloNerves.Recorder do
 
   def handle_events(events, _from, state) do
     for event <- events do
-      IO.inspect({self(), event})
+#      IO.inspect({self(), event, state})
+#      send_frame(event)
     end
 
     {:noreply, [], state}
+  end
+
+  defp send_frame(frame) do
+    Logger.info("sending frame")
+    IO.inspect "sending frame"
+    size = byte_size(frame)
+    res = ExAws.Kinesis.put_record("test2", "partitionkey", frame)
+    Logger.debug(inspect(res))
   end
 end

@@ -10,13 +10,42 @@ defmodule HelloNerves.Motion.Worker do
 
   @impl true
   def init([{:moving, _moving}, 0] = args) do
-    {:ok, stream} = GenStage.start_link(HelloNerves.Stream, [{:moving, false}, 0], name: HelloNerves.Stream)
+    Logger.info("in worker")
+    spawn_port()
+    {:ok, stream} =
+      GenStage.start_link(HelloNerves.Stream, 0, name: HelloNerves.Stream)
 
     {:ok, recorder} =
       recorder = GenStage.start_link(HelloNerves.Recorder, [], name: HelloNerves.Recorder)
 
-    GenStage.sync_subscribe(recorder, to: stream)
+    GenStage.sync_subscribe(recorder, to: stream, max_demand: 10, min_demand: 0)
+
     {:ok, args}
+  end
+
+  def handle_info(:reconnect_port, state) do
+    with port when is_port(port) <- spawn_port() do
+      {:noreply, state}
+    else
+      _ ->
+        Process.send_after(self(), :reconnect_port, 10_000)
+        {:noreply, state}
+    end
+  end
+
+  def handle_info({_, {:exit_status, _}}, state) do
+    Process.send_after(self(), :reconnect_port, 10_000)
+    {:noreply, state}
+  end
+
+  defp spawn_port() do
+    executable = Path.join(:code.priv_dir(:picam), "raspijpgs")
+    Port.open({:spawn_executable, executable}, [{:packet, 4}, :use_stdio, :binary, :exit_status])
+  end
+
+  def handle_info({_, {:data, jpg}}, state) do
+    Logger.info("YES!!")
+    {:noreply, state}
   end
 
   @impl true
