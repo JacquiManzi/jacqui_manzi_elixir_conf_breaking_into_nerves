@@ -47,7 +47,7 @@ defmodule HelloNerves.MixProject do
       {:plug, "~> 1.0"},
       {:plug_cowboy, "~> 1.0"},
       {:ex_image_info, "~> 0.2.4"},
-#      {:picam, "~> 0.4.0"},
+      #{:picam, "~> 0.4.0"},
       {:gen_stage, "~> 0.14"},
       {:mux, "~> 1.4.0"},
       {:httpoison, "~> 0.8"},
@@ -63,7 +63,8 @@ defmodule HelloNerves.MixProject do
       {:nerves_init_gadget, "~> 0.4", targets: @all_targets},
 
       # Dependencies for specific targets
-      {:nerves_system_rpi3, "~> 1.8", runtime: false, targets: :rpi3}
+      #{:nerves_system_rpi3, "~> 1.8", runtime: false, targets: :rpi3}
+      {:nerves_system_rpi3, git: "https://github.com/JacquiManzi/nerves_system_rpi3.git", branch: "master", runtime: false, targets: :rpi3}
     ]
   end
 
