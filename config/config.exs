@@ -28,6 +28,10 @@ config :logger, backends: [RingLogger]
 config :hello_nerves, port: 4005
 config :picam, camera: Picam.FakeCamera
 
+config :mux,
+  access_token_id: System.get_env("MUX_ACCESS_TOKEN"),
+  access_token_secret: System.get_env("MUX_SECRET")
+
 if Mix.target() != :host do
   import_config "target.exs"
 end

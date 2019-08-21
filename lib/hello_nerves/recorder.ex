@@ -17,9 +17,11 @@ defmodule HelloNerves.Recorder do
   end
 
   def handle_events(events, _from, state) do
+    Logger.info("handling events")
+
     for event <- events do
-#      IO.inspect({self(), event, state})
-#      send_frame(event)
+      IO.inspect({self(), event, state})
+      send_frame(event)
     end
 
     {:noreply, [], state}
@@ -27,9 +29,7 @@ defmodule HelloNerves.Recorder do
 
   defp send_frame(frame) do
     Logger.info("sending frame")
-    IO.inspect "sending frame"
+    IO.inspect("sending frame")
     size = byte_size(frame)
-    res = ExAws.Kinesis.put_record("test2", "partitionkey", frame)
-    Logger.debug(inspect(res))
   end
 end

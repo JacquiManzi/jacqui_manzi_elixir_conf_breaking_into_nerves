@@ -47,24 +47,20 @@ defmodule HelloNerves.MixProject do
       {:plug, "~> 1.0"},
       {:plug_cowboy, "~> 1.0"},
       {:ex_image_info, "~> 0.2.4"},
-      #{:picam, "~> 0.4.0"},
+      {:picam, "~> 0.4.0"},
       {:gen_stage, "~> 0.14"},
       {:mux, "~> 1.4.0"},
       {:httpoison, "~> 0.8"},
       {:jason, "~> 1.1"},
-      {:ex_aws, "~> 2.0"},
-      {:ex_aws_kinesis, "~> 2.0"},
       {:poison, "~> 3.0"},
       {:hackney, "~> 1.9"},
-      {:picam, git: "https://github.com/JacquiManzi/picam.git", branch: "master"},
 
       # Dependencies for all targets except :host
       {:nerves_runtime, "~> 0.6", targets: @all_targets},
       {:nerves_init_gadget, "~> 0.4", targets: @all_targets},
 
       # Dependencies for specific targets
-      #{:nerves_system_rpi3, "~> 1.8", runtime: false, targets: :rpi3}
-      {:nerves_system_rpi3, git: "https://github.com/JacquiManzi/nerves_system_rpi3.git", branch: "master", runtime: false, targets: :rpi3}
+      {:nerves_system_rpi3, "~> 1.8", runtime: false, targets: :rpi3}
     ]
   end
 

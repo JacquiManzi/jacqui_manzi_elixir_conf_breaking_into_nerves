@@ -25,16 +25,18 @@ defmodule HelloNerves.Stream do
   end
 
   def handle_demand(_demand, state) do
-    IO.inspect "in demand"
+    IO.inspect("in demand")
     Logger.info("in demand")
-    IO.inspect state
-    Logger.debug(inspect(state))
-    list = state ++ [Picam.next_frame()]
-#    jpe_binary_list = jpg |> :binary.bin_to_list()
-#    sum = Enum.sum(jpe_binary_list)
-#    percentage = previous_sum * @motion_sensitivity
-#    is_moving = sum < previous_sum - percentage or sum > previous_sum + percentage
+    pid = Process.whereis(MotionDetectionWorker)
+    [{:moving, is_moving}, count, buffer] = :sys.get_state(pid)
+    events = state ++ buffer
+    Logger.debug(inspect(buffer))
+    {:noreply, events, state ++ buffer}
+  end
 
-    {:noreply, list, list}
+  defp image_data(filename) when is_binary(filename) do
+    :code.priv_dir(:picam)
+    |> Path.join("fake_camera_images/#{filename}")
+    |> File.read!()
   end
 end
