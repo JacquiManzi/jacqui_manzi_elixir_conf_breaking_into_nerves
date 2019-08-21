@@ -1,4 +1,4 @@
-# GenStage A - we get jpegs in and detect if there is movement
+# GenStage A - We read jpg files from /tmp and put them in a queue, deleting them after, and passing them to the next stage
 # If there is movement, let's update our state and send information downstream to the next GenStage
 defmodule HelloNerves.Stream do
   use GenStage
@@ -24,19 +24,29 @@ defmodule HelloNerves.Stream do
     {:reply, :ok, [event], state}
   end
 
-  def handle_demand(_demand, state) do
+  def handle_demand(_demand, files) do
     IO.inspect("in demand")
     Logger.info("in demand")
-    pid = Process.whereis(MotionDetectionWorker)
-    [{:moving, is_moving}, count, buffer] = :sys.get_state(pid)
-    events = state ++ buffer
-    Logger.debug(inspect(buffer))
-    {:noreply, events, state ++ buffer}
+    processed_files = process_files()
+    {:noreply, processed_files, []}
   end
 
-  defp image_data(filename) when is_binary(filename) do
-    :code.priv_dir(:picam)
-    |> Path.join("fake_camera_images/#{filename}")
-    |> File.read!()
+  defp process_files() do
+    directory = "/tmp"
+    {:ok, files} = File.ls(directory)
+    Enum.map(files, fn(file) -> process_file(file))
+  end
+
+  defp process_file(directory, file_name) do
+    file_path = "#{directory}/#{file_name}"
+
+    with {:ok, file} <- File.open(file_path),
+         :ok <- File.rm(file_path) do
+      file
+    else
+      _ ->
+        Logger.info("Could not process the file.")
+        nil
+    end
   end
 end

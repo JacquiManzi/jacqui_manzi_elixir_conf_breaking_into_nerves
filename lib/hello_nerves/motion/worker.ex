@@ -4,13 +4,13 @@ defmodule HelloNerves.Motion.Worker do
 
   @motion_sensitivity 0.005
 
-  def start_link() do
-    GenServer.start_link(__MODULE__, [{:moving, false}, 0, []], name: MotionDetectionWorker)
+  def start_link(opts \\ []) do
+    GenServer.start_link(__MODULE__, opts, name: MotionDetectionWorker)
   end
 
   @impl true
-  def init([{:moving, _moving}, 0, []] = args) do
-    System.cmd("sh", ["-c", "ffmpeg -f video4linux2 -framerate 30 -input_format nv12 -video_size 640x480 -i /dev/video0 -c:v libx264 -preset ultrafast -pix_fmt yuv420p -b:v 3000k -g 30 -refs 3 -bf 0 -an -f flv rtmp://live.mux.com/app/e273881e-ba21-b44d-2033-4aeaa14f1416 /tmp/foo-%03d.jpeg "], stderr_to_stdout: true)
+  def init(_opts) do
+    port = spawn_port()
     {:ok, stream} = GenStage.start_link(HelloNerves.Stream, 0, name: HelloNerves.Stream)
 
     {:ok, recorder} =
@@ -18,7 +18,7 @@ defmodule HelloNerves.Motion.Worker do
 
     GenStage.sync_subscribe(recorder, to: stream, timeout: 20_000)
 
-    {:ok, args}
+    {:ok, %{port: port}}
   end
 
   @impl true
@@ -39,12 +39,9 @@ defmodule HelloNerves.Motion.Worker do
   end
 
   @impl true
-  def handle_info({_, {:data, jpg}}, [{:moving, false}, 0, buffer] = state) do
-    if length(buffer) >= 200 do
-      {:noreply, [{:moving, false}, 0, [jpg]]}
-    else
-      {:noreply, [{:moving, false}, 0, buffer ++ [jpg]]}
-    end
+  def handle_info({_, {:data, jpg}}, state) do
+    Logger.info("got some data from fmpeg?")
+    {:noreply, state}
   end
 
   @impl true
@@ -58,7 +55,18 @@ defmodule HelloNerves.Motion.Worker do
   end
 
   defp spawn_port() do
-    executable = Path.join(:code.priv_dir(:picam), "raspijpgs")
-    Port.open({:spawn_executable, executable}, [{:packet, 4}, :use_stdio, :binary, :exit_status])
+    executable = System.find_executable("ffmpeg")
+
+    # System.cmd("sh", ["-c", "ffmpeg -f video4linux2 -framerate 30 -input_format nv12 -video_size 640x480 -i /dev/video0 -c:v libx264 -preset ultrafast -pix_fmt yuv420p -b:v 3000k -g 30 -refs 3 -bf 0 -an -f flv rtmp://live.mux.com/app/e273881e-ba21-b44d-2033-4aeaa14f1416 /tmp/foo-%03d.jpeg"], stderr_to_stdout: true)
+    # Let's use args: and give it a list of arguments to create a mux live stream on spawn, let's save that live stream to our
+    # state
+    # This will connect the GenServer process to this port (we get messages and can use handle_info callbacks etc)
+    Port.open({:spawn_executable, executable}, [
+      {:packet, 4},
+      :use_stdio,
+      :binary,
+      :exit_status,
+      :stderr_to_stdout
+    ])
   end
 end
