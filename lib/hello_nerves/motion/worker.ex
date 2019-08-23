@@ -8,10 +8,7 @@ defmodule HelloNerves.Motion.Worker do
 
   @impl true
   def init(_opts) do
-    jpg = Picam.next_frame()
-    sections = HelloNerves.Motion.MotionDetection.detect_motion(jpg)
-
-    count = Enum.sum(sections)
+    count = Picam.next_frame() |> get_image_binary_sum()
     {:ok, %{port: nil, count: count}}
   end
 
@@ -48,28 +45,11 @@ defmodule HelloNerves.Motion.Worker do
   end
 
   @impl true
-  def handle_cast({:motion_detected, _}, %{port: port, count: _count}) do
-    {:noreply, %{port: port}}
-  end
-
-  @impl true
-  def handle_cast({:motion_undetected, _}, %{port: port, count: _count}) do
-    {:noreply, %{port: port}}
-  end
-
-  @impl true
   def handle_cast({:detect_motion, image}, %{port: port, count: previous_count}) do
-    sections = HelloNerves.Motion.MotionDetection.detect_motion(image)
+    count = get_image_binary_sum(image)
 
-    count = Enum.sum(sections)
-
-    if count < previous_count - previous_count * 0.20 do
-      Logger.debug(inspect(count))
-      Logger.info("Moving")
-      kill_picam()
-    end
-
-    if count > previous_count + previous_count * 0.20 do
+    if count < previous_count - previous_count * 0.20 or
+         count > previous_count + previous_count * 0.20 do
       Logger.debug(inspect(count))
       Logger.info("Moving")
       kill_picam()
@@ -97,11 +77,15 @@ defmodule HelloNerves.Motion.Worker do
     spawn_rtmp_port()
   end
 
+  defp get_image_binary_sum(image) do
+    image |> :binary.bin_to_list() |> Enum.sum()
+  end
+
   defp spawn_rtmp_port() do
     Logger.info("attempting to open rtmp port")
 
     {target_number, twilio_number_you_own, body} =
-      {System.get_env("mux", :phone_number), System.get_env("mux", :twilio_number),
+      {Application.get_env(:mux, :phone_number), Application.get_env(:mux, :twilio_number),
        "Movement was detected and your stream has started"}
 
     ExTwilio.Message.create(to: target_number, from: twilio_number_you_own, body: body)
