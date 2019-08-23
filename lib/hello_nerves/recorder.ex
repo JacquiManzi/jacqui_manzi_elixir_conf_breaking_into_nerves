@@ -1,12 +1,8 @@
-# GenStage B - Get's jpegs from GenStage A and does some basic motion calcuation on them,
-# If this is motion, let's start streaming to mux
-# If there isn't motion for a x amount of time, close the port and stop streaming to mux
-# This starts a stream and sends to Mux
 defmodule HelloNerves.Recorder do
   use GenStage
   require Logger
 
-  @motion_sensitivity 0.08
+  @motion_sensitivity 0.09
   @directory "/tmp/frames"
 
   def start_link(args) do
@@ -14,17 +10,18 @@ defmodule HelloNerves.Recorder do
   end
 
   def init(_args) do
-    {:consumer, %{is_moving: false, count: 0}}
+    {:consumer,
+     %{is_moving: false, count: 0, sample_frame: nil, motion_interval: 500, motion_active: false}}
   end
 
   def handle_events(frames, _from, state) do
-    :timer.sleep(1000)
+    :timer.sleep(800)
     process_files(frames)
     {:noreply, [], state}
   end
 
   defp process_files(files) do
-    Enum.map(files |> Enum.take(-30), fn file -> process_file(file) end)
+    Enum.map(files |> Enum.take(-40), fn file -> process_file(file) end)
   end
 
   defp process_file(file_name) do
@@ -40,11 +37,102 @@ defmodule HelloNerves.Recorder do
     end
   end
 
-  def handle_cast({:detect_motion, jpeg}, %{is_moving: _moving, count: previous_count}) do
+  @impl true
+  def handle_cast({:detect_motion, jpeg}, %{
+        is_moving: _moving,
+        count: previous_count,
+        sample_frame: _sample_frame,
+        motion_interval: motion_interval,
+        motion_active: motion_active
+      }) do
     count = jpeg |> :binary.bin_to_list() |> Enum.sum()
     percentage = previous_count * @motion_sensitivity
     is_moving = count < previous_count - percentage or count > previous_count + percentage
-    if is_moving, do: Logger.info(is_moving)
-    {:noreply, [], %{is_moving: is_moving, count: count}}
+    Process.send(self(), :set_motion_state, [])
+
+    {:noreply, [],
+     %{
+       is_moving: is_moving,
+       count: count,
+       sample_frame: jpeg,
+       motion_interval: motion_interval,
+       motion_active: motion_active
+     }}
+  end
+
+  @impl true
+  def handle_info(
+        :set_motion_state,
+        %{
+          is_moving: is_moving,
+          count: count,
+          sample_frame: jpeg,
+          motion_interval: motion_interval,
+          motion_active: motion_active
+        } = state
+      ) do
+    Logger.info(is_moving)
+    Logger.info(motion_interval)
+    pid = Process.whereis(MotionDetectionWorker)
+
+    cond do
+      is_moving ->
+        if !motion_active do
+          Logger.info("Setting motion active state")
+          GenStage.cast(pid, {:motion_detected, true})
+
+          {:noreply, [],
+           %{
+             is_moving: is_moving,
+             count: count,
+             sample_frame: jpeg,
+             motion_interval: 2000,
+             motion_active: true
+           }}
+        else
+          {:noreply, [],
+           %{
+             is_moving: is_moving,
+             count: count,
+             sample_frame: jpeg,
+             motion_interval: 2000,
+             motion_active: motion_active
+           }}
+        end
+
+      !is_moving and motion_active ->
+        if motion_interval == 0 do
+          Logger.info("Setting motion unactive state")
+          GenStage.cast(pid, {:motion_undetected, true})
+
+          {:noreply, [],
+           %{
+             is_moving: is_moving,
+             count: count,
+             sample_frame: jpeg,
+             motion_interval: motion_interval,
+             motion_active: false
+           }}
+        else
+          {:noreply, [],
+           %{
+             is_moving: is_moving,
+             count: count,
+             sample_frame: jpeg,
+             motion_interval: motion_interval - 1,
+             motion_active: motion_active
+           }}
+        end
+
+      !is_moving and !motion_active ->
+        {:noreply, [],
+         %{
+           is_moving: is_moving,
+           count: count,
+           sample_frame: jpeg,
+           motion_interval: 0,
+           motion_active: motion_active
+         }}
+    end
   end
 end

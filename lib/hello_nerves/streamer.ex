@@ -13,8 +13,6 @@ defmodule HelloNerves.Streamer do
   end
 
   def call(conn, _opts) do
-    Picam.set_size(1080, 0)
-
     conn
     |> put_resp_header("Age", "0")
     |> put_resp_header("Cache-Control", "no-cache, private")
@@ -25,7 +23,11 @@ defmodule HelloNerves.Streamer do
   end
 
   defp send_frames(conn) do
-    frame = Picam.next_frame()
+    pid = Process.whereis(HelloNerves.Recorder)
+
+    %{is_moving: is_moving, count: count, sample_frame: frame} =
+      :sys.get_state(pid) |> Map.from_struct() |> Map.get(:state)
+
     send_frame(conn, frame)
     send_frames(conn)
   end
