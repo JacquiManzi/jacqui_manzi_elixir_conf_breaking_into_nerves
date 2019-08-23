@@ -1,7 +1,12 @@
-# HelloNerves
+# Jacqui Manzi Elixir Conf 2019 - Breaking Into Nerves (AKA my fun hack project for a conference talk)
 
-**TODO: Add description**
+## What is this even?
 
+## Project Goals
+
+## Project setup
+
+# Nerves specifics
 ## Targets
 
 Nerves applications produce images for hardware targets based on the
