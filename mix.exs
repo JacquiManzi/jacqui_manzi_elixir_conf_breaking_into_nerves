@@ -54,6 +54,7 @@ defmodule HelloNerves.MixProject do
       {:jason, "~> 1.1"},
       {:poison, "~> 3.0"},
       {:hackney, "~> 1.9"},
+      {:ex_twilio, "~> 0.7.0"},
 
       # Dependencies for all targets except :host
       {:nerves_runtime, "~> 0.6", targets: @all_targets},

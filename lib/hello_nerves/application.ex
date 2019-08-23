@@ -6,11 +6,12 @@ defmodule HelloNerves.Application do
     import Supervisor.Spec, warn: false
     opts = [strategy: :one_for_one, name: HelloNerves.Supervisor]
     port = Application.get_env(:hello_nerves, :port)
-    #    camera = Application.get_env(:picam, :camera, Picam.FakeCamera)
+    camera = Application.get_env(:picam, :camera, Picam.FakeCamera)
+    HTTPoison.start()
 
     children =
       [
-        #        worker(camera, []),
+        worker(camera, []),
         worker(HelloNerves.Motion.Worker, []),
         Plug.Adapters.Cowboy.child_spec(:http, HelloNerves.Router, [], port: port)
       ] ++ children(target())

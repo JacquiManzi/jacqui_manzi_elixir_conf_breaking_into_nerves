@@ -8,33 +8,18 @@ defmodule HelloNerves.Motion.Worker do
 
   @impl true
   def init(_opts) do
-    File.mkdir("/tmp/frames")
-    port = spawn_frame_port()
-    Process.send_after(self(), :start_genstages, 10000)
+    jpg = Picam.next_frame()
+    sections = HelloNerves.Motion.MotionDetection.detect_motion(jpg)
 
-    {:ok, %{port: port}}
-  end
-
-  @impl true
-  def handle_info(:start_genstages, state) do
-    {:ok, stream} = GenStage.start_link(HelloNerves.Stream, [], name: HelloNerves.Stream)
-
-    {:ok, recorder} =
-      GenStage.start_link(
-        HelloNerves.Recorder,
-        [],
-        name: HelloNerves.Recorder
-      )
-
-    GenStage.sync_subscribe(recorder, to: stream, max_demand: 30)
-    {:noreply, state}
+    count = Enum.sum(sections)
+    {:ok, %{port: nil, count: count}}
   end
 
   @impl true
   def handle_info(:reconnect_port, state) do
     Logger.info("we're spawning a new port...")
 
-    with port when is_port(port) <- spawn_frame_port() do
+    with port when is_port(port) <- spawn_rtmp_port() do
       {:noreply, state}
     else
       _ ->
@@ -47,7 +32,7 @@ defmodule HelloNerves.Motion.Worker do
   def handle_info({_, {:exit_status, status}}, state) do
     Logger.info("got exit status")
     Logger.debug(inspect(status))
-#    if status != 1, do: Process.send_after(self(), :reconnect_port, 10_000)
+    Process.send_after(self(), :reconnect_port, 10_000)
     {:noreply, state}
   end
 
@@ -63,54 +48,63 @@ defmodule HelloNerves.Motion.Worker do
   end
 
   @impl true
-  def handle_cast({:motion_detected, _}, %{port: port}) do
-    Logger.info("attempting to close frame port")
-    {:os_pid, pid} = Port.info(port, :os_pid)
-    System.cmd("kill", ["-KILL", "#{pid}"])
-    rtmp_port = spawn_rtmp_port()
-    {:noreply, %{port: rtmp_port}}
+  def handle_cast({:motion_detected, _}, %{port: port, count: _count}) do
+    {:noreply, %{port: port}}
   end
 
   @impl true
-  def handle_cast({:motion_undetected, _}, %{port: port}) do
-    Logger.info("attempting to close rtmp port")
-    {:os_pid, pid} = Port.info(port, :os_pid)
-    System.cmd("kill", ["-KILL", "#{pid}"])
-    frame_port = spawn_frame_port()
-    {:noreply, %{port: frame_port}}
+  def handle_cast({:motion_undetected, _}, %{port: port, count: _count}) do
+    {:noreply, %{port: port}}
   end
 
-  defp spawn_frame_port() do
-    Logger.info("attempting to open frame")
-    executable = System.find_executable("ffmpeg")
+  @impl true
+  def handle_cast({:detect_motion, image}, %{port: port, count: previous_count}) do
+    sections = HelloNerves.Motion.MotionDetection.detect_motion(image)
 
-    port =
-      Port.open({:spawn_executable, executable}, [
-        :stderr_to_stdout,
-        :use_stdio,
-        :exit_status,
-        :binary,
-        {:args,
-         [
-           "-f",
-           "video4linux2",
-           "-framerate",
-           "30",
-           "-input_format",
-           "nv12",
-           "-video_size",
-           "640x480",
-           "-i",
-           "/dev/video0",
-           "-r",
-           "10",
-           "/tmp/frames/foo-%03d.jpeg"
-         ]}
-      ])
+    count = Enum.sum(sections)
+
+    if count < previous_count - previous_count * 0.20 do
+      Logger.debug(inspect(count))
+      Logger.info("Moving")
+      kill_picam()
+    end
+
+    if count > previous_count + previous_count * 0.20 do
+      Logger.debug(inspect(count))
+      Logger.info("Moving")
+      kill_picam()
+    end
+
+    {:noreply, %{port: port, count: count}}
+  end
+
+  defp kill_picam() do
+    pid = Process.whereis(Picam.Camera)
+
+    %{
+      port: port,
+      requests: _requests,
+      offline: _offline,
+      offline_image: offline_image,
+      port_restart_interval: port_restart_interval
+    } = :sys.get_state(pid)
+
+    {:os_pid, port_pid} = Port.info(port, :os_pid)
+    System.cmd("kill", ["-KILL", "#{port_pid}"])
+
+    Process.exit(pid, :normal)
+    :timer.sleep(1000)
+    spawn_rtmp_port()
   end
 
   defp spawn_rtmp_port() do
     Logger.info("attempting to open rtmp port")
+
+    {target_number, twilio_number_you_own, body} =
+      {System.get_env("mux", :phone_number), System.get_env("mux", :twilio_number),
+       "Movement was detected and your stream has started"}
+
+    ExTwilio.Message.create(to: target_number, from: twilio_number_you_own, body: body)
     executable = System.find_executable("ffmpeg")
 
     port =
@@ -150,10 +144,7 @@ defmodule HelloNerves.Motion.Worker do
            "-an",
            "-f",
            "flv",
-           "#{Application.get_env(:mux, :stream_url)}/#{Application.get_env(:mux, :stream_key)}",
-           "-r",
-           "10",
-           "/tmp/frames/foo-%03d.jpeg"
+           "#{Application.get_env(:mux, :stream_url)}/#{Application.get_env(:mux, :stream_key)}"
          ]}
       ])
   end
