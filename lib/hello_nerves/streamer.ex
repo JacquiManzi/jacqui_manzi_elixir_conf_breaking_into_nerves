@@ -6,7 +6,7 @@ defmodule HelloNerves.Streamer do
   require Logger
 
   @behaviour Plug
-  @boundary "w58EW1cEpjzydSCq"
+  @boundary "w51JacquiManziElixirConfcEpydSCq"
 
   def init(opts), do: opts
 
