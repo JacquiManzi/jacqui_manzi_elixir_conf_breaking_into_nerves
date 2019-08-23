@@ -1,4 +1,4 @@
-# Jacqui Manzi Elixir Conf 2019 - Breaking Into Nerves
+# Jacqui Manzi ElixirConf 2019 - Breaking Into Nerves
 
 ## What is this even?
 
