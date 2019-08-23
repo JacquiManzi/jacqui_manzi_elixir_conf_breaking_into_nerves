@@ -1,6 +1,8 @@
-# Jacqui Manzi Elixir Conf 2019 - Breaking Into Nerves (AKA my fun hack project for a conference talk)
+# Jacqui Manzi Elixir Conf 2019 - Breaking Into Nerves
 
 ## What is this even?
+
+Well, really it's a fun hack project for a conference talk. [Link](https://elixirconf.com/2019/speakers/47)
 
 ## Project Goals
 
