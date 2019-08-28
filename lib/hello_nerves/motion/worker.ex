@@ -72,7 +72,7 @@ defmodule HelloNerves.Motion.Worker do
     Logger.info("attempting to open rtmp port")
 
     with {target_number, twilio_number_you_own, body} <-
-           {Application.get_env(:mux, :phone_number), Application.get_env(:mux, :twilio_number),
+           {Application.get_env(:ex_twilio, :phone_number), Application.get_env(:ex_twilio, :twilio_number),
             "Movement was detected and your stream has started"},
          {:ok, _} <-
            ExTwilio.Message.create(to: target_number, from: twilio_number_you_own, body: body) do
