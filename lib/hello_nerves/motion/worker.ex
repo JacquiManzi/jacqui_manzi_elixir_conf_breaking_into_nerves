@@ -42,6 +42,14 @@ defmodule HelloNerves.Motion.Worker do
 
   @impl true
   def handle_info(
+        {_, {:ffmpeg_info, enabled}},
+        state
+      ) do
+    {:noreply, %{state | allow_ffmpeg_info: enabled}}
+  end
+
+  @impl true
+  def handle_info(
         :restart_picam,
         state = %{port: port}
       ) do
@@ -69,7 +77,7 @@ defmodule HelloNerves.Motion.Worker do
          {:ok, _} <-
            ExTwilio.Message.create(to: target_number, from: twilio_number_you_own, body: body) do
       rtmp_port = spawn_rtmp_port()
-      {:noreply, %{state | port: rtmp_port, stream_allowed: true}}
+      {:noreply, %{state | port: rtmp_port, stream_allowed: false}}
     else
       _ -> {:noreply, state}
     end
@@ -105,7 +113,7 @@ defmodule HelloNerves.Motion.Worker do
 
     if count < previous_count - percentage or
          count > previous_count + percentage do
-      Logger.info("Moving: #{count}}")
+      Logger.info("Moving: #{count}")
 
       if stream_allowed, do: kill_picam()
     end

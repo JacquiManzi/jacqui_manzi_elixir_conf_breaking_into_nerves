@@ -30,7 +30,15 @@ config :picam, camera: Picam.FakeCamera
 
 config :mux,
   access_token_id: System.get_env("MUX_ACCESS_TOKEN"),
-  access_token_secret: System.get_env("MUX_SECRET")
+  access_token_secret: System.get_env("MUX_SECRET"),
+  stream_key: System.get_env("MUX_STREAM_KEY"),
+  stream_url: System.get_env("MUX_STREAM_URL")
+
+config :ex_twilio,
+  account_sid: {:system, "TWILIO_ACCOUNT_SID"},
+  auth_token: {:system, "TWILIO_AUTH_TOKEN"},
+  phone_number: System.get_env("PHONE_NUMBER"),
+  twilio_number: System.get_env("TWILIO_NUMBER")
 
 if Mix.target() != :host do
   import_config "target.exs"
