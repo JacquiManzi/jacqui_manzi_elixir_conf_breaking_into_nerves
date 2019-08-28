@@ -62,7 +62,7 @@ defmodule HelloNerves.MixProject do
 
       # Dependencies for specific targets
       {:nerves_system_rpi3, "~> 1.8", runtime: false, targets: :rpi3},
-      {:custom_rpi3, github: "JacquiManzi/custom_rpi3", runtime: false, targets: :custom_rpi3}
+      {:custom_rpi3, github: "JacquiManzi/custom_rpi3", runtime: false, targets: :custom_rpi3, tag: "1.0"}
     ]
   end
 

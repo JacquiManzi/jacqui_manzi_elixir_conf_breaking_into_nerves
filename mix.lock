@@ -4,6 +4,7 @@
   "combine": {:hex, :combine, "0.10.0", "eff8224eeb56498a2af13011d142c5e7997a80c8f5b97c499f84c841032e429f", [:mix], [], "hexpm"},
   "cowboy": {:hex, :cowboy, "1.0.4", "a324a8df9f2316c833a470d918aaf73ae894278b8aa6226ce7a9bf699388f878", [:make, :rebar], [{:cowlib, "~> 1.0.0", [hex: :cowlib, repo: "hexpm", optional: false]}, {:ranch, "~> 1.0", [hex: :ranch, repo: "hexpm", optional: false]}], "hexpm"},
   "cowlib": {:hex, :cowlib, "1.0.2", "9d769a1d062c9c3ac753096f868ca121e2730b9a377de23dec0f7e08b1df84ee", [:make], [], "hexpm"},
+  "custom_rpi3": {:git, "https://github.com/JacquiManzi/custom_rpi3.git", "6202b8adb88d9695b058dfde3179f3c95595d024", [tag: "1.0"]},
   "dns": {:hex, :dns, "2.1.2", "81c46d39f7934f0e73368355126e4266762cf227ba61d5889635d83b2d64a493", [:mix], [{:socket, "~> 0.3.13", [hex: :socket, repo: "hexpm", optional: false]}], "hexpm"},
   "elixir_make": {:hex, :elixir_make, "0.6.0", "38349f3e29aff4864352084fc736fa7fa0f2995a819a737554f7ebd28b85aaab", [:mix], [], "hexpm"},
   "ex_image_info": {:hex, :ex_image_info, "0.2.4", "610002acba43520a9b1cf1421d55812bde5b8a8aeaf1fe7b1f8823e84e762adb", [:mix], [], "hexpm"},
