@@ -49,6 +49,7 @@ defmodule HelloNerves.MixProject do
       {:ex_image_info, "~> 0.2.4"},
       {:picam, "~> 0.4.0"},
       {:gen_stage, "~> 0.14"},
+      {:mux, "~> 1.4.0"},
       {:httpoison, "~> 0.8"},
       {:jason, "~> 1.1"},
       {:poison, "~> 3.0"},
